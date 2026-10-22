@@ -1,11 +1,76 @@
-<script>
-function initFreshdesk() {
-  window.fdWidget.init({
-    token: "01K06C4TKSPC3TV14C8343ZD29",
-    host: "https://pledgeling.freshdesk.com",
-    widgetId: "01M5FPX4JK8PWA1JX9A1ZYEW21"
-  });
-}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Freshdesk Chat Test</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 640px; margin: 60px auto; padding: 0 16px; color: #222; }
+    code { background: #f2f0fb; padding: 2px 6px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Freshdesk chat test page</h1>
+  <p>Test widget: <code>01M5FPX4JK8PWA1JX9A1ZYEW21</code></p>
+  <p>The purple “Get Help” button should appear in the bottom-right corner within a few seconds.</p>
 
-function initialize(i,t){var e;i.getElementById(t)?initFreshdesk():((e=i.createElement("script")).id=t,e.async=!0,e.src="https://pledgeling.freshdesk.com/webchat/js/widget.js",e.onload=initFreshdesk,i.head.appendChild(e))}function initiateCall(){initialize(document,"Freshdesk-js-sdk")}window.addEventListener?window.addEventListener("load",initiateCall,!1):window.attachEvent("load",initiateCall,!1);
-</script>
+  <script>
+  (function () {
+    if (document.querySelector('meta[name="disable-freshchat"]')) return;
+
+    var SDK_ID  = 'Freshdesk-js-sdk';
+    var SDK_SRC = 'https://pledgeling.freshdesk.com/webchat/js/widget.js';
+    var INIT = {
+      token:    '01K06C4TKSPC3TV14C8343ZD29',
+      host:     'https://pledgeling.freshdesk.com',
+      widgetId: '01M5FPX4JK8PWA1JX9A1ZYEW21',
+      config: { headerProperty: { hideChatButton: true } }
+    };
+
+    function addStyles() {
+      if (document.getElementById('pledge-help-style')) return;
+      var css = document.createElement('style');
+      css.id = 'pledge-help-style';
+      css.textContent =
+        '#pledge-help-btn{position:fixed;bottom:20px;right:20px;z-index:2147483601;background:#7f5edf;color:#fff;border:none;' +
+        'padding:14px 28px;border-radius:50px;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(127,94,223,.4);' +
+        'display:flex;align-items:center;gap:10px;font-family:inherit;transition:transform .2s,box-shadow .2s}' +
+        '#pledge-help-btn:hover{transform:scale(1.05);box-shadow:0 6px 24px rgba(127,94,223,.55)}' +
+        '#pledge-help-btn.is-hidden{display:none}';
+      document.head.appendChild(css);
+    }
+
+    function addHelpButton() {
+      if (document.getElementById('pledge-help-btn')) return;
+      addStyles();
+      var btn = document.createElement('button');
+      btn.id = 'pledge-help-btn';
+      btn.type = 'button';
+      btn.setAttribute('aria-label', 'Get help');
+      btn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Get Help';
+      btn.onclick = function () { if (!window.fdWidget.isOpen()) window.fdWidget.open(); };
+      window.fdWidget.on('widget:opened', function () { btn.classList.add('is-hidden'); });
+      window.fdWidget.on('widget:closed', function () { btn.classList.remove('is-hidden'); });
+      document.body.appendChild(btn);
+    }
+
+    function initWidget() {
+      window.fdWidget.init(INIT);
+      window.fdWidget.on('widget:loaded', addHelpButton);
+      if (window.fdWidget.isLoaded && window.fdWidget.isLoaded()) addHelpButton();
+    }
+
+    function loadWidget() {
+      if (document.querySelector('meta[name="disable-freshchat"]')) return;
+      if (document.getElementById(SDK_ID)) return initWidget();
+      var s = document.createElement('script');
+      s.id = SDK_ID; s.async = true; s.src = SDK_SRC; s.onload = initWidget;
+      document.head.appendChild(s);
+    }
+
+    if (document.readyState === 'complete') loadWidget();
+    else window.addEventListener('load', loadWidget);
+  })();
+  </script>
+</body>
+</html>
